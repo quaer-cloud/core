@@ -3,6 +3,7 @@ package cloud.quaer.product.api
 import play.api.libs.json.Format
 import play.api.libs.json.Json
 
+// TODO Add fields
 case class ProductVariant()
 
 object ProductVariant {
