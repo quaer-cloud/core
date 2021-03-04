@@ -4,7 +4,7 @@
   </a>
 </p>
 <h1 align="center">
-  Lagom minimal starter (scala)
+  Quaer - Core Product
 </h1>
 
 ![Scala CI](https://github.com/tiarebalbi/lagom-starter-minimal/workflows/Scala%20CI/badge.svg)
