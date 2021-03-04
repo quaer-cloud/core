@@ -10,8 +10,10 @@ import com.lightbend.lagom.scaladsl.api.ServiceCall
 import java.util.UUID
 
 /**
- * Manage a store's products, which are the individual items and services for sale in the store.
+ * The Product resource lets you update and create products in a merchant's store.
+ * You can use product variants with the Product resource to create or update different versions of the same product.
  *
+ * @see ProductVariantService
  * @author tiare.balbi
  * @version 1.0.0
  */
