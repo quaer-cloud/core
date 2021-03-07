@@ -1,20 +1,27 @@
 package cloud.quaer.product.impl
 
-import akka.{Done, NotUsed}
-import cloud.quaer.product.api
-import cloud.quaer.product.api._
+import akka.Done
+import akka.NotUsed
+import cloud.quaer.product.api.ProductService
+import cloud.quaer.product.api.models.CountQueryFilter
+import cloud.quaer.product.api.models.ProductCountResponse
+import cloud.quaer.product.api.models.ProductPagedView
+import cloud.quaer.product.api.models.ProductQueryFilter
+import cloud.quaer.product.api.models.ProductRequest
+import cloud.quaer.product.api.models.ProductResponse
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 
 import java.util.UUID
 
 class ProductServiceImpl extends ProductService {
+
   /**
    * Retrieves all products available using productFilter
    *
    * @param productQueryFilter path filters available for product
    * @return ProductResponse
    */
-  override def products(productQueryFilter: ProductQueryFilter): ServiceCall[NotUsed, ProductResponse] = ???
+  override def products(productQueryFilter: ProductQueryFilter): ServiceCall[NotUsed, ProductPagedView] = ???
 
   /**
    * Return the number of products using path filter
@@ -22,7 +29,7 @@ class ProductServiceImpl extends ProductService {
    * @param countQueryFilter query filter available to count products
    * @return number of products matching the filter
    */
-  override def count(countQueryFilter: CountQueryFilter): ServiceCall[NotUsed, ProductCount] = ???
+  override def count(countQueryFilter: CountQueryFilter): ServiceCall[NotUsed, ProductCountResponse] = ???
 
   /**
    * Retrieves details about a single product
@@ -30,14 +37,14 @@ class ProductServiceImpl extends ProductService {
    * @param productId unique ID of the product
    * @return Product
    */
-  override def product(productId: UUID): ServiceCall[NotUsed, api.Product] = ???
+  override def getProduct(productId: UUID): ServiceCall[NotUsed, ProductResponse] = ???
 
   /**
    * Add a new Product to the Database
    *
    * @return Product type
    */
-  override def addProduct(): ServiceCall[ProductRequest, api.Product] = ???
+  override def addProduct(): ServiceCall[ProductRequest, ProductResponse] = ???
 
   /**
    * Update details about a specific product
@@ -45,7 +52,7 @@ class ProductServiceImpl extends ProductService {
    * @param productId Product unique ID
    * @return Product
    */
-  override def updateProduct(productId: UUID): ServiceCall[ProductRequest, api.Product] = ???
+  override def updateProduct(productId: UUID): ServiceCall[ProductRequest, ProductResponse] = ???
 
   /**
    * Delete a product from the database using the unique ID

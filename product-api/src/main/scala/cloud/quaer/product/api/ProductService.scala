@@ -2,6 +2,12 @@ package cloud.quaer.product.api
 
 import akka.Done
 import akka.NotUsed
+import cloud.quaer.product.api.models.CountQueryFilter
+import cloud.quaer.product.api.models.ProductCountResponse
+import cloud.quaer.product.api.models.ProductPagedView
+import cloud.quaer.product.api.models.ProductQueryFilter
+import cloud.quaer.product.api.models.ProductRequest
+import cloud.quaer.product.api.models.ProductResponse
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.Descriptor
 import com.lightbend.lagom.scaladsl.api.Service
@@ -27,7 +33,7 @@ trait ProductService extends Service {
       .withCalls(
         restCall(Method.GET, s"/admin/api/v1/products${ProductQueryFilter.PATH}", products _),
         restCall(Method.GET, s"/admin/api/v1/products/count${CountQueryFilter.PATH}", count _),
-        restCall(Method.GET, "/admin/api/v1/products/:productId", product _),
+        restCall(Method.GET, "/admin/api/v1/products/:productId", getProduct _),
         restCall(Method.POST, "/admin/api/v1/products", addProduct _),
         restCall(Method.PUT, "/admin/api/v1/products/:productId", updateProduct _),
         restCall(Method.DELETE, "/admin/api/v1/products/:productId", deleteProduct _)
@@ -42,7 +48,7 @@ trait ProductService extends Service {
    * @param productQueryFilter path filters available for product
    * @return ProductResponse
    */
-  def products(productQueryFilter: ProductQueryFilter): ServiceCall[NotUsed, ProductResponse]
+  def products(productQueryFilter: ProductQueryFilter): ServiceCall[NotUsed, ProductPagedView]
 
   /**
    * Return the number of products using path filter
@@ -50,7 +56,7 @@ trait ProductService extends Service {
    * @param countQueryFilter query filter available to count products
    * @return number of products matching the filter
    */
-  def count(countQueryFilter: CountQueryFilter): ServiceCall[NotUsed, ProductCount]
+  def count(countQueryFilter: CountQueryFilter): ServiceCall[NotUsed, ProductCountResponse]
 
   /**
    * Retrieves details about a single product
@@ -58,14 +64,14 @@ trait ProductService extends Service {
    * @param productId unique ID of the product
    * @return Product
    */
-  def product(productId: UUID): ServiceCall[NotUsed, Product]
+  def getProduct(productId: UUID): ServiceCall[NotUsed, ProductResponse]
 
   /**
    * Add a new Product to the Database
    *
    * @return Product type
    */
-  def addProduct(): ServiceCall[ProductRequest, Product]
+  def addProduct(): ServiceCall[ProductRequest, ProductResponse]
 
   /**
    * Update details about a specific product
@@ -73,7 +79,7 @@ trait ProductService extends Service {
    * @param productId Product unique ID
    * @return Product
    */
-  def updateProduct(productId: UUID): ServiceCall[ProductRequest, Product]
+  def updateProduct(productId: UUID): ServiceCall[ProductRequest, ProductResponse]
 
   /**
    * Delete a product from the database using the unique ID

@@ -1,59 +1,36 @@
-package cloud.quaer.product.api
+package cloud.quaer.product.api.models
 
-import cloud.quaer.product.api.Product._
+import cloud.quaer.product.api.models.Product.ProductType
 import com.lightbend.lagom.scaladsl.api.deser.PathParamSerializer
 import play.api.libs.json.Format
 import play.api.libs.json.Json
 
-import java.time.Instant
-import java.util.Currency
-import java.util.UUID
-
-case class Product(
-    id: UUID,
-    title: String,
-    vendor: String,
-    productType: ProductType,
-    bodyHtml: String,
-    slug: String,
-    updatedAt: Instant,
-    publishedAt: Instant,
-    status: Option[Boolean],
-    tags: Set[String],
-    presentmentCurrencies: Option[Currency]
-)
-
-object Product {
-  type ProductType = String
-  type Vendor      = String
-
-  implicit val format: Format[Product] = Json.format
-}
+sealed trait ApiEntity
 
 case class ProductRequest(
     title: String,
     vendor: String,
     productType: ProductType,
     bodyHtml: String,
-    slug: String,
+    slug: Option[String],
     status: Boolean,
     tags: Set[String]
-)
+) extends ApiEntity
 
 object ProductRequest {
   implicit val format: Format[ProductRequest] = Json.format
 }
 
-case class ProductResponse(products: Set[Product], size: Int, page: Int)
+case class ProductResponse(product: Option[Product]) extends ApiEntity
 
 object ProductResponse {
   implicit val format: Format[ProductResponse] = Json.format
 }
 
-case class ProductCount(total: Int)
+case class ProductCountResponse(total: Int)
 
-object ProductCount {
-  implicit val format: Format[ProductCount] = Json.format
+object ProductCountResponse {
+  implicit val format: Format[ProductCountResponse] = Json.format
 }
 
 sealed trait QueryFilter
@@ -67,7 +44,7 @@ case class ProductQueryFilter(
     status: Option[String],
     collectionId: Option[String],
     publishedStatus: Option[String],
-    presentmentCurrencies: Option[Currency],
+    presentmentCurrencies: Option[String],
 ) extends QueryFilter
 
 object ProductQueryFilter {
