@@ -1,3 +1,13 @@
 package cloud.quaer.product.impl
 
-object ProductSerializerRegistry {}
+import com.lightbend.lagom.scaladsl.playjson.JsonSerializer
+import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
+
+object ProductSerializerRegistry extends JsonSerializerRegistry {
+  override def serializers: Seq[JsonSerializer[_]] = Seq(
+    JsonSerializer[ProductState],
+    // Replies
+    JsonSerializer[Accepted],
+    JsonSerializer[Rejected],
+  )
+}

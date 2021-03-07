@@ -2,18 +2,26 @@ package cloud.quaer.product.impl
 
 import akka.Done
 import akka.NotUsed
+import akka.cluster.sharding.typed.scaladsl.ClusterSharding
+import akka.cluster.sharding.typed.scaladsl.EntityRef
+import akka.dispatch.Futures
+import akka.util.Timeout
 import cloud.quaer.product.api.ProductService
-import cloud.quaer.product.api.models.CountQueryFilter
-import cloud.quaer.product.api.models.ProductCountResponse
-import cloud.quaer.product.api.models.ProductPagedView
-import cloud.quaer.product.api.models.ProductQueryFilter
-import cloud.quaer.product.api.models.ProductRequest
-import cloud.quaer.product.api.models.ProductResponse
+import cloud.quaer.product.api.models._
 import com.lightbend.lagom.scaladsl.api.ServiceCall
+import com.lightbend.lagom.scaladsl.persistence.PersistentEntityRegistry
 
 import java.util.UUID
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.DurationInt
 
-class ProductServiceImpl extends ProductService {
+class ProductServiceImpl(
+    clusterSharding: ClusterSharding,
+    persistentEntityRegistry: PersistentEntityRegistry
+)(implicit ec: ExecutionContext)
+    extends ProductService {
+
+  implicit val timeout: Timeout = Timeout(5.seconds)
 
   /**
    * Retrieves all products available using productFilter
@@ -21,7 +29,10 @@ class ProductServiceImpl extends ProductService {
    * @param productQueryFilter path filters available for product
    * @return ProductResponse
    */
-  override def products(productQueryFilter: ProductQueryFilter): ServiceCall[NotUsed, ProductPagedView] = ???
+  override def products(productQueryFilter: ProductQueryFilter): ServiceCall[NotUsed, ProductPagedView] = ServiceCall {
+    // TODO Review logic here
+    _ => Futures.successful(ProductPagedView(Set.empty))
+  }
 
   /**
    * Return the number of products using path filter
@@ -29,7 +40,10 @@ class ProductServiceImpl extends ProductService {
    * @param countQueryFilter query filter available to count products
    * @return number of products matching the filter
    */
-  override def count(countQueryFilter: CountQueryFilter): ServiceCall[NotUsed, ProductCountResponse] = ???
+  override def count(countQueryFilter: CountQueryFilter): ServiceCall[NotUsed, ProductCountResponse] = ServiceCall {
+    // TODO Review logic here
+    _ => Futures.successful(ProductCountResponse(-1))
+  }
 
   /**
    * Retrieves details about a single product
@@ -37,7 +51,19 @@ class ProductServiceImpl extends ProductService {
    * @param productId unique ID of the product
    * @return Product
    */
-  override def getProduct(productId: UUID): ServiceCall[NotUsed, ProductResponse] = ???
+  override def getProduct(productId: UUID): ServiceCall[NotUsed, ProductResponse] = ServiceCall { _ =>
+    entityRef(productId)
+      .ask(reply => GetProduct(reply))
+      .map { product =>
+        ProductResponse(Some(product))
+      }
+  }
+
+  /**
+   * Looks up the shopping cart entity for the given ID.
+   */
+  private def entityRef(id: UUID): EntityRef[Command] =
+    clusterSharding.entityRefFor(ProductState.typeKey, id.toString)
 
   /**
    * Add a new Product to the Database
