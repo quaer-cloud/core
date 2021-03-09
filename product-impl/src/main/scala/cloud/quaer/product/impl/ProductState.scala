@@ -5,6 +5,7 @@ import akka.actor.typed.Behavior
 import akka.cluster.sharding.typed.scaladsl.EntityContext
 import akka.cluster.sharding.typed.scaladsl.EntityTypeKey
 import akka.persistence.typed.PersistenceId
+import akka.persistence.typed.scaladsl.Effect
 import akka.persistence.typed.scaladsl.EventSourcedBehavior
 import akka.persistence.typed.scaladsl.ReplyEffect
 import akka.persistence.typed.scaladsl.RetentionCriteria
@@ -16,9 +17,31 @@ import play.api.libs.json.Json
 import java.time.Instant
 
 case class ProductState(product: Option[Product], timeStamp: String) {
-  def applyEvent(evt: Event): ProductState = ???
 
-  def applyCommand(cmd: Command): ReplyEffect[Event, ProductState] = ???
+  def applyEvent(evt: Event): ProductState = {
+    evt match {
+      case ProductAdded(product) => onProductAdded(product)
+    }
+  }
+
+  private def onProductAdded(product: Product): ProductState = copy(Some(product), Instant.now().toString)
+
+  def applyCommand(cmd: Command): ReplyEffect[Event, ProductState] = {
+    cmd match {
+      case AddProduct(product, replyTo) => onAddProduct(product, replyTo)
+    }
+  }
+
+  private def onAddProduct(product: Product, replyTo: ActorRef[Confirmation]): ReplyEffect[Event, ProductState] = {
+    val expectedStatus = product.status.getOrElse(false)
+    val publishedTime  = Instant.now()
+
+    Effect
+      .persist(ProductAdded(product.copy(status = Some(expectedStatus), publishedAt = publishedTime)))
+      .thenReply(replyTo)(updatedProduct => Accepted(toProduct(updatedProduct)))
+  }
+
+  private def toProduct(state: ProductState): Product = state.product.get
 }
 
 object ProductState {
@@ -49,7 +72,7 @@ trait CommandSerializable
 
 sealed trait Command extends CommandSerializable
 
-final case class GetProduct(replyTo: ActorRef[Confirmation]) extends Command
+final case class AddProduct(product: Product, replyTo: ActorRef[Confirmation]) extends Command
 
 // Events
 sealed trait Event extends AggregateEvent[Event] {
@@ -58,6 +81,11 @@ sealed trait Event extends AggregateEvent[Event] {
 
 object Event {
   val Tag: AggregateEventShards[Event] = AggregateEventTag.sharded[Event](numShards = 10)
+}
+
+final case class ProductAdded(product: Product) extends Event
+object ProductAdded {
+  implicit val format: Format[ProductAdded] = Json.format
 }
 
 // Answer

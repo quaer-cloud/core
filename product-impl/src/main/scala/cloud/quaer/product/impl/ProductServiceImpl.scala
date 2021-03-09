@@ -8,8 +8,9 @@ import akka.dispatch.Futures
 import akka.util.Timeout
 import cloud.quaer.product.api.ProductService
 import cloud.quaer.product.api.models._
+import cloud.quaer.product.impl.repository.ProductReportRepository
 import com.lightbend.lagom.scaladsl.api.ServiceCall
-import com.lightbend.lagom.scaladsl.persistence.PersistentEntityRegistry
+import com.lightbend.lagom.scaladsl.api.transport.NotFound
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
@@ -17,7 +18,7 @@ import scala.concurrent.duration.DurationInt
 
 class ProductServiceImpl(
     clusterSharding: ClusterSharding,
-    persistentEntityRegistry: PersistentEntityRegistry
+    reportRepository: ProductReportRepository
 )(implicit ec: ExecutionContext)
     extends ProductService {
 
@@ -51,19 +52,14 @@ class ProductServiceImpl(
    * @param productId unique ID of the product
    * @return Product
    */
-  override def getProduct(productId: UUID): ServiceCall[NotUsed, ProductResponse] = ServiceCall { _ =>
-    entityRef(productId)
-      .ask(reply => GetProduct(reply))
-      .map { product =>
-        ProductResponse(Some(product))
+  override def getProduct(productId: UUID): ServiceCall[NotUsed, Product] = ServiceCall { _ =>
+    reportRepository
+      .findById(productId)
+      .map {
+        case Some(product) => product
+        case _             => throw NotFound(s"Could not find the product ID ${productId}")
       }
   }
-
-  /**
-   * Looks up the shopping cart entity for the given ID.
-   */
-  private def entityRef(id: UUID): EntityRef[Command] =
-    clusterSharding.entityRefFor(ProductState.typeKey, id.toString)
 
   /**
    * Add a new Product to the Database
@@ -86,4 +82,10 @@ class ProductServiceImpl(
    * @param productId Product unique ID
    */
   override def deleteProduct(productId: UUID): ServiceCall[NotUsed, Done] = ???
+
+  /**
+   * Looks up the shopping cart entity for the given ID.
+   */
+  private def entityRef(id: UUID): EntityRef[Command] =
+    clusterSharding.entityRefFor(ProductState.typeKey, id.toString)
 }

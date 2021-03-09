@@ -2,16 +2,11 @@ package cloud.quaer.product.api
 
 import akka.Done
 import akka.NotUsed
-import cloud.quaer.product.api.models.CountQueryFilter
-import cloud.quaer.product.api.models.ProductCountResponse
-import cloud.quaer.product.api.models.ProductPagedView
-import cloud.quaer.product.api.models.ProductQueryFilter
-import cloud.quaer.product.api.models.ProductRequest
-import cloud.quaer.product.api.models.ProductResponse
-import com.lightbend.lagom.scaladsl.api.transport.Method
+import cloud.quaer.product.api.models._
 import com.lightbend.lagom.scaladsl.api.Descriptor
 import com.lightbend.lagom.scaladsl.api.Service
 import com.lightbend.lagom.scaladsl.api.ServiceCall
+import com.lightbend.lagom.scaladsl.api.transport.Method
 
 import java.util.UUID
 
@@ -64,7 +59,7 @@ trait ProductService extends Service {
    * @param productId unique ID of the product
    * @return Product
    */
-  def getProduct(productId: UUID): ServiceCall[NotUsed, ProductResponse]
+  def getProduct(productId: UUID): ServiceCall[NotUsed, Product]
 
   /**
    * Add a new Product to the Database
